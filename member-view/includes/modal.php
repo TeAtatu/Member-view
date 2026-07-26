@@ -77,9 +77,11 @@ function member_view_render_modal() {
 	}
 	$is_visitor = is_user_logged_in();
 	?>
-	<button type="button" class="member-view-trigger" data-member-view-open aria-haspopup="dialog">
-		<?php esc_html_e( 'Sign in', 'member-view' ); ?>
-	</button>
+	<?php if ( ! $is_visitor ) : ?>
+		<button type="button" class="member-view-trigger" data-member-view-open aria-haspopup="dialog">
+			<?php esc_html_e( 'Sign in', 'member-view' ); ?>
+		</button>
+	<?php endif; ?>
 
 	<div class="member-view-overlay" data-member-view-overlay hidden>
 		<div class="member-view-modal" role="dialog" aria-modal="true" aria-labelledby="member-view-title" data-member-view-dialog>
@@ -198,15 +200,16 @@ function member_view_ajax_request_access() {
 		wp_send_json_success( $generic );
 	}
 
-	$username = member_view_unique_username_from_email( $email );
-	$user_id  = wp_insert_user(
+	$signup_role = member_view_get_default_signup_role();
+	$username    = member_view_unique_username_from_email( $email );
+	$user_id     = wp_insert_user(
 		array(
 			'user_login'   => $username,
 			'user_email'   => $email,
 			'user_pass'    => wp_generate_password( 24, true, true ),
 			'display_name' => $name,
 			'first_name'   => $name,
-			'role'         => MEMBER_VIEW_ROLE,
+			'role'         => $signup_role,
 		)
 	);
 
@@ -215,7 +218,7 @@ function member_view_ajax_request_access() {
 	}
 
 	if ( is_multisite() ) {
-		add_user_to_blog( get_current_blog_id(), $user_id, MEMBER_VIEW_ROLE );
+		add_user_to_blog( get_current_blog_id(), $user_id, $signup_role );
 	}
 
 	update_user_meta( $user_id, 'member_view_requested_at', time() );
@@ -226,7 +229,7 @@ function member_view_ajax_request_access() {
 	wp_new_user_notification( $user_id, null, 'user' );
 
 	// Notify an administrator.
-	member_view_notify_admin_of_request( $name, $email );
+	member_view_notify_admin_of_request( $name, $email, $signup_role );
 
 	wp_send_json_success( $generic );
 }
@@ -258,12 +261,18 @@ function member_view_unique_username_from_email( $email ) {
  *
  * @param string $name  Requester name.
  * @param string $email Requester email.
+ * @param string $role  Role the new account was created with.
  */
-function member_view_notify_admin_of_request( $name, $email ) {
+function member_view_notify_admin_of_request( $name, $email, $role = MEMBER_VIEW_ROLE ) {
 	$admin_email = get_option( 'admin_email' );
 	if ( ! $admin_email ) {
 		return;
 	}
+
+	$role_obj  = get_role( $role );
+	$role_name = ( $role_obj && isset( wp_roles()->role_names[ $role ] ) )
+		? translate_user_role( wp_roles()->role_names[ $role ] )
+		: $role;
 
 	$site    = wp_specialchars_decode( get_option( 'blogname' ), ENT_QUOTES );
 	$subject = sprintf(
@@ -273,12 +282,13 @@ function member_view_notify_admin_of_request( $name, $email ) {
 	);
 
 	$body = sprintf(
-		/* translators: 1: requester name, 2: requester email, 3: site name, 4: users screen URL. */
-		__( "%1\$s (%2\$s) has requested access to %3\$s.\n\nA gated \"Visitor\" account has been created. Review and promote them here:\n%4\$s", 'member-view' ),
+		/* translators: 1: requester name, 2: requester email, 3: site name, 4: role name, 5: users screen URL. */
+		__( "%1\$s (%2\$s) has requested access to %3\$s.\n\nAn account has been created with the role: %4\$s. Review it here:\n%5\$s", 'member-view' ),
 		$name,
 		$email,
 		$site,
-		admin_url( 'users.php?role=' . MEMBER_VIEW_ROLE )
+		$role_name,
+		admin_url( 'users.php?role=' . rawurlencode( $role ) )
 	);
 
 	wp_mail( $admin_email, $subject, $body );

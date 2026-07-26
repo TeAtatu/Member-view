@@ -3,7 +3,7 @@ Contributors:
 Tags: membership, access control, login, private site, multisite
 Requires at least: 6.0
 Requires PHP: 7.4
-Stable tag: 1.0.0
+Stable tag: 1.1.0
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -23,7 +23,8 @@ The access decision lives in one helper, `member_view_is_community()`, which is 
 * **Configurable landing page** — pick any published page (Settings → Member View). Stored by post ID, so it survives renames. If none is set, gating is disabled (fail open) and an admin notice appears.
 * **Gate on every entry point** — front-end (`template_redirect`), REST (`rest_pre_dispatch`), and wp-admin (`admin_init`). Feeds and XML sitemaps stay crawlable for SEO, but feeds emit excerpts only so gated content isn't leaked.
 * **Login modal** — accessible (keyboard, focus trap, Escape). Offers a real login form (core auth) and a "Request access" form.
-* **Request access** — creates a gated Visitor-role account, emails the requester a set-password/verify link, and notifies an administrator. Protected by a nonce and honeypot. Not self-service registration — accounts stay gated until an admin promotes them.
+* **Request access** — creates an account (with the configurable default sign-up role, Visitor by default), emails the requester a set-password/verify link, and notifies an administrator. Protected by a nonce and honeypot. With the default role, accounts stay gated until an admin promotes them.
+* **Configurable default sign-up role** — choose which role "Request access" assigns to new accounts (Settings → Member View). Defaults to Visitor.
 * **Preview as Visitor** — admins can experience the gate against their own session (admin-bar toggle) without logging out.
 * **User columns** — adds sortable "Date Created" and "Last Login" columns to the Users screen (last login is captured on `wp_login`).
 * **Multisite** — works on single-site and multisite. The Visitor role is provisioned on every site (and on new sites as they're created). The landing page setting is per-site.
@@ -47,6 +48,10 @@ No. The Visitor role carries only the `read` capability and is treated exactly l
 They can crawl XML sitemaps and feeds, but feeds are limited to titles/excerpts/links — the full article body is never served to an unauthenticated request.
 
 == Changelog ==
+
+= 1.1.0 =
+* New setting: "Default sign-up role" (Settings → Member View) controls which role new "Request access" accounts get. Defaults to Visitor, so existing behavior is unchanged unless you change it. Administrator is not selectable (and is never honored) since "Request access" is public.
+* Updater: added an optional GitHub token field for private repositories, an Update URI header so wordpress.org can't hijack the same slug, and support for WordPress's native per-plugin auto-update toggle.
 
 = 1.0.0 =
 * Initial release: two-tier Visitor/Community model, configurable landing page, multi-entry-point gate, accessible login + request-access modal, preview-as-visitor mode, Date Created / Last Login user columns, multisite provisioning, and an optional GitHub-releases updater.

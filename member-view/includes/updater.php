@@ -17,7 +17,7 @@ if ( ! defined( 'ABSPATH' ) ) {
  * @return string
  */
 function member_view_update_repo() {
-	return (string) get_option( 'member_view_update_repo', '' );
+	return (string) get_option( 'member_view_update_repo', MEMBER_VIEW_DEFAULT_REPO );
 }
 
 /**
@@ -101,15 +101,22 @@ function member_view_check_for_update( $transient ) {
 		return $transient;
 	}
 
+	$item = array(
+		'slug'        => dirname( MEMBER_VIEW_BASENAME ),
+		'plugin'      => MEMBER_VIEW_BASENAME,
+		'new_version' => $release['version'],
+		'url'         => $release['url'],
+		'package'     => $release['package'],
+	);
+
 	if ( version_compare( $release['version'], MEMBER_VIEW_VERSION, '>' ) ) {
-		$item = array(
-			'slug'        => dirname( MEMBER_VIEW_BASENAME ),
-			'plugin'      => MEMBER_VIEW_BASENAME,
-			'new_version' => $release['version'],
-			'url'         => $release['url'],
-			'package'     => $release['package'],
-		);
 		$transient->response[ MEMBER_VIEW_BASENAME ] = (object) $item;
+	} else {
+		// Report "no update" so WordPress's native per-plugin auto-update
+		// toggle is offered on the Plugins screen.
+		$item['new_version'] = MEMBER_VIEW_VERSION;
+		unset( $item['package'] );
+		$transient->no_update[ MEMBER_VIEW_BASENAME ] = (object) $item;
 	}
 
 	return $transient;

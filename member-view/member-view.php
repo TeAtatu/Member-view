@@ -1,9 +1,9 @@
 <?php
 /**
  * Plugin Name:       Member View
- * Plugin URI:        https://github.com/
+ * Plugin URI:        https://github.com/TeAtatu/Member-view
  * Description:       Two-tier access: Visitors (logged-out or "Visitor" role) see only a configurable landing page and a login modal; the Community (any other logged-in role) gets standard WordPress access.
- * Version:           1.0.0
+ * Version:           1.1.0
  * Requires at least: 6.0
  * Requires PHP:      7.4
  * Author:
@@ -11,6 +11,7 @@
  * License URI:       https://www.gnu.org/licenses/gpl-2.0.html
  * Text Domain:       member-view
  * Domain Path:       /languages
+ * Update URI:        https://github.com/TeAtatu/Member-view
  *
  * @package MemberView
  */
@@ -19,7 +20,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 	exit; // No direct access.
 }
 
-define( 'MEMBER_VIEW_VERSION', '1.0.0' );
+define( 'MEMBER_VIEW_VERSION', '1.1.0' );
 define( 'MEMBER_VIEW_FILE', __FILE__ );
 define( 'MEMBER_VIEW_BASENAME', plugin_basename( __FILE__ ) );
 define( 'MEMBER_VIEW_DIR', plugin_dir_path( __FILE__ ) );
@@ -30,6 +31,12 @@ define( 'MEMBER_VIEW_URL', plugin_dir_url( __FILE__ ) );
  * logged-out user everywhere in this plugin.
  */
 define( 'MEMBER_VIEW_ROLE', 'member_view_visitor' );
+
+/**
+ * Default GitHub repository ("owner/name") the self-hosted updater checks for
+ * releases. Overridable in Settings → Member View.
+ */
+define( 'MEMBER_VIEW_DEFAULT_REPO', 'TeAtatu/Member-view' );
 
 require_once MEMBER_VIEW_DIR . 'includes/helpers.php';
 require_once MEMBER_VIEW_DIR . 'includes/roles.php';

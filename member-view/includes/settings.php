@@ -40,6 +40,16 @@ function member_view_register_settings() {
 
 	register_setting(
 		'member_view_settings',
+		'member_view_default_signup_role',
+		array(
+			'type'              => 'string',
+			'sanitize_callback' => 'member_view_sanitize_signup_role',
+			'default'           => MEMBER_VIEW_ROLE,
+		)
+	);
+
+	register_setting(
+		'member_view_settings',
 		'member_view_uninstall_visitor_action',
 		array(
 			'type'              => 'string',
@@ -54,6 +64,16 @@ function member_view_register_settings() {
 		array(
 			'type'              => 'string',
 			'sanitize_callback' => 'member_view_sanitize_repo',
+			'default'           => MEMBER_VIEW_DEFAULT_REPO,
+		)
+	);
+
+	register_setting(
+		'member_view_settings',
+		'member_view_update_token',
+		array(
+			'type'              => 'string',
+			'sanitize_callback' => 'member_view_sanitize_token',
 			'default'           => '',
 		)
 	);
@@ -69,6 +89,14 @@ function member_view_register_settings() {
 		'member_view_landing_page_id',
 		__( 'Visitor landing page', 'member-view' ),
 		'member_view_field_landing_page',
+		'member-view',
+		'member_view_main'
+	);
+
+	add_settings_field(
+		'member_view_default_signup_role',
+		__( 'Default sign-up role', 'member-view' ),
+		'member_view_field_default_role',
 		'member-view',
 		'member_view_main'
 	);
@@ -95,6 +123,14 @@ function member_view_register_settings() {
 		'member-view',
 		'member_view_updates'
 	);
+
+	add_settings_field(
+		'member_view_update_token',
+		__( 'GitHub token (private repos)', 'member-view' ),
+		'member_view_field_update_token',
+		'member-view',
+		'member_view_updates'
+	);
 }
 add_action( 'admin_init', 'member_view_register_settings' );
 
@@ -115,6 +151,44 @@ function member_view_sanitize_landing_page_id( $value ) {
 		return 0;
 	}
 	return $id;
+}
+
+/**
+ * Roles an admin may pick as the default sign-up role. Administrator is
+ * deliberately excluded — "Request access" is a public form, so it must never
+ * be able to self-provision an administrator.
+ *
+ * @return array slug => display name.
+ */
+function member_view_selectable_signup_roles() {
+	if ( ! function_exists( 'get_editable_roles' ) ) {
+		require_once ABSPATH . 'wp-admin/includes/user.php';
+	}
+	$roles = array();
+	foreach ( get_editable_roles() as $slug => $details ) {
+		if ( 'administrator' === $slug ) {
+			continue;
+		}
+		$roles[ $slug ] = $details['name'];
+	}
+	return $roles;
+}
+
+/**
+ * Sanitize the default sign-up role: must be a selectable role (never
+ * Administrator).
+ *
+ * @param mixed $value Raw value.
+ * @return string
+ */
+function member_view_sanitize_signup_role( $value ) {
+	$value   = is_string( $value ) ? $value : '';
+	$allowed = array_keys( member_view_selectable_signup_roles() );
+	if ( '' === $value || ! in_array( $value, $allowed, true ) ) {
+		add_settings_error( 'member_view_settings', 'role_invalid', __( 'The selected sign-up role is not valid; defaulting to Visitor.', 'member-view' ) );
+		return MEMBER_VIEW_ROLE;
+	}
+	return $value;
 }
 
 /**
@@ -148,6 +222,16 @@ function member_view_sanitize_repo( $value ) {
 }
 
 /**
+ * Sanitize the GitHub access token.
+ *
+ * @param mixed $value Raw value.
+ * @return string
+ */
+function member_view_sanitize_token( $value ) {
+	return is_string( $value ) ? trim( sanitize_text_field( $value ) ) : '';
+}
+
+/**
  * Field: landing page dropdown.
  */
 function member_view_field_landing_page() {
@@ -161,6 +245,24 @@ function member_view_field_landing_page() {
 		)
 	);
 	echo '<p class="description">' . esc_html__( 'Logged-out and Visitor-role users can see only this page. If none is set, gating is disabled (fail open).', 'member-view' ) . '</p>';
+}
+
+/**
+ * Field: default sign-up role.
+ */
+function member_view_field_default_role() {
+	$selected = member_view_get_default_signup_role();
+	echo '<select name="member_view_default_signup_role">';
+	foreach ( member_view_selectable_signup_roles() as $slug => $name ) {
+		printf(
+			'<option value="%s" %s>%s</option>',
+			esc_attr( $slug ),
+			selected( $selected, $slug, false ),
+			esc_html( translate_user_role( $name ) )
+		);
+	}
+	echo '</select>';
+	echo '<p class="description">' . esc_html__( 'Role assigned to new accounts created via the "Request access" form. Defaults to Visitor (kept gated until promoted). Choosing a non-Visitor role makes new sign-ups Community members immediately after they verify their email. Administrator is not selectable.', 'member-view' ) . '</p>';
 }
 
 /**
@@ -190,12 +292,24 @@ function member_view_field_uninstall_action() {
  * Field: GitHub update repo.
  */
 function member_view_field_update_repo() {
-	$value = get_option( 'member_view_update_repo', '' );
+	$value = get_option( 'member_view_update_repo', MEMBER_VIEW_DEFAULT_REPO );
 	printf(
 		'<input type="text" name="member_view_update_repo" value="%s" class="regular-text" placeholder="owner/name">',
 		esc_attr( $value )
 	);
-	echo '<p class="description">' . esc_html__( 'Optional. Set to enable GitHub-release auto-updates. Leave blank to disable the updater.', 'member-view' ) . '</p>';
+	echo '<p class="description">' . esc_html__( 'GitHub repository (owner/name) checked for release updates. Leave blank to disable the updater.', 'member-view' ) . '</p>';
+}
+
+/**
+ * Field: GitHub token.
+ */
+function member_view_field_update_token() {
+	$value = get_option( 'member_view_update_token', '' );
+	printf(
+		'<input type="password" name="member_view_update_token" value="%s" class="regular-text" autocomplete="off">',
+		esc_attr( $value )
+	);
+	echo '<p class="description">' . esc_html__( 'Optional. Only needed if the repository is private. A fine-grained token with read access to the repo is sufficient.', 'member-view' ) . '</p>';
 }
 
 /**

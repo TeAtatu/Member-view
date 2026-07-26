@@ -60,6 +60,23 @@ function member_view_get_landing_page_id() {
 }
 
 /**
+ * The role new "Request access" sign-ups are created with. Admin-configurable
+ * (Settings → Member View), defaulting to the Visitor role. Falls back to
+ * Visitor if the stored role no longer exists.
+ *
+ * @return string Role slug.
+ */
+function member_view_get_default_signup_role() {
+	$role = (string) get_option( 'member_view_default_signup_role', MEMBER_VIEW_ROLE );
+	// Administrator is never a valid public-signup role, even if the option is
+	// somehow set to it (e.g. via direct DB edit). Fall back to Visitor.
+	if ( '' === $role || 'administrator' === $role || ! get_role( $role ) ) {
+		return MEMBER_VIEW_ROLE;
+	}
+	return $role;
+}
+
+/**
  * Is the current user in admin "preview as visitor" mode?
  *
  * Only meaningful for a privileged, logged-in user who has toggled preview on

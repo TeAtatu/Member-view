@@ -57,6 +57,7 @@ function member_view_uninstall_site() {
 
 	// Always remove this plugin's own footprint.
 	delete_option( 'member_view_landing_page_id' );
+	delete_option( 'member_view_default_signup_role' );
 	delete_option( 'member_view_uninstall_visitor_action' );
 	delete_option( 'member_view_update_repo' );
 	delete_option( 'member_view_update_token' );
