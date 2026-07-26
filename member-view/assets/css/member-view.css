@@ -1,0 +1,198 @@
+/* Member View — login modal + trigger. Theme-agnostic, minimal. */
+
+.member-view-trigger {
+	position: fixed;
+	right: 1rem;
+	bottom: 1rem;
+	z-index: 99998;
+	padding: 0.6em 1.2em;
+	font: inherit;
+	font-weight: 600;
+	color: #fff;
+	background: #1e40af;
+	border: 0;
+	border-radius: 4px;
+	cursor: pointer;
+	box-shadow: 0 2px 8px rgba( 0, 0, 0, 0.25 );
+}
+
+.member-view-trigger:hover,
+.member-view-trigger:focus {
+	background: #1d3a94;
+}
+
+.member-view-overlay {
+	position: fixed;
+	inset: 0;
+	z-index: 99999;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	padding: 1rem;
+	background: rgba( 0, 0, 0, 0.55 );
+}
+
+.member-view-overlay[hidden] {
+	display: none;
+}
+
+.member-view-modal {
+	position: relative;
+	width: 100%;
+	max-width: 26rem;
+	max-height: calc( 100vh - 2rem );
+	overflow-y: auto;
+	padding: 1.75rem;
+	background: #fff;
+	color: #1f2937;
+	border-radius: 8px;
+	box-shadow: 0 10px 40px rgba( 0, 0, 0, 0.35 );
+	box-sizing: border-box;
+}
+
+.member-view-close {
+	position: absolute;
+	top: 0.5rem;
+	right: 0.75rem;
+	font-size: 1.6rem;
+	line-height: 1;
+	color: #6b7280;
+	background: transparent;
+	border: 0;
+	cursor: pointer;
+}
+
+.member-view-close:hover,
+.member-view-close:focus {
+	color: #111827;
+}
+
+.member-view-heading {
+	margin: 0 0 1rem;
+	font-size: 1.4rem;
+}
+
+.member-view-tabs {
+	display: flex;
+	gap: 0.5rem;
+	margin-bottom: 1rem;
+	border-bottom: 1px solid #e5e7eb;
+}
+
+.member-view-tab {
+	padding: 0.5em 0.25em;
+	font: inherit;
+	color: #6b7280;
+	background: transparent;
+	border: 0;
+	border-bottom: 2px solid transparent;
+	cursor: pointer;
+}
+
+.member-view-tab.is-active {
+	color: #1e40af;
+	border-bottom-color: #1e40af;
+	font-weight: 600;
+}
+
+.member-view-form label {
+	display: block;
+	margin-bottom: 0.85rem;
+}
+
+.member-view-form label > span {
+	display: block;
+	margin-bottom: 0.25rem;
+	font-size: 0.9rem;
+	font-weight: 600;
+}
+
+.member-view-form input[type="text"],
+.member-view-form input[type="email"],
+.member-view-form input[type="password"] {
+	width: 100%;
+	padding: 0.55em 0.7em;
+	font: inherit;
+	color: #1f2937;
+	border: 1px solid #d1d5db;
+	border-radius: 4px;
+	box-sizing: border-box;
+}
+
+.member-view-form input:focus {
+	outline: 2px solid #1e40af;
+	outline-offset: 1px;
+	border-color: #1e40af;
+}
+
+.member-view-check {
+	display: flex !important;
+	align-items: center;
+	gap: 0.4rem;
+	font-size: 0.9rem;
+}
+
+.member-view-check input {
+	width: auto;
+}
+
+.member-view-submit {
+	width: 100%;
+	padding: 0.65em 1em;
+	margin-top: 0.25rem;
+	font: inherit;
+	font-weight: 600;
+	color: #fff;
+	background: #1e40af;
+	border: 0;
+	border-radius: 4px;
+	cursor: pointer;
+}
+
+.member-view-submit:hover,
+.member-view-submit:focus {
+	background: #1d3a94;
+}
+
+.member-view-submit:disabled {
+	opacity: 0.6;
+	cursor: default;
+}
+
+.member-view-alt {
+	margin: 0.75rem 0 0;
+	font-size: 0.85rem;
+}
+
+.member-view-note {
+	margin: 0 0 0.5rem;
+	font-size: 0.95rem;
+	color: #374151;
+}
+
+.member-view-message {
+	margin-bottom: 1rem;
+	padding: 0.6em 0.8em;
+	font-size: 0.9rem;
+	border-radius: 4px;
+	background: #ecfdf5;
+	color: #065f46;
+}
+
+.member-view-message.is-error {
+	background: #fef2f2;
+	color: #991b1b;
+}
+
+/* Honeypot: visually and interaction hidden, but not display:none (bots skip those). */
+.member-view-hp {
+	position: absolute !important;
+	left: -9999px !important;
+	width: 1px;
+	height: 1px;
+	overflow: hidden;
+}
+
+body.member-view-open {
+	overflow: hidden;
+}
